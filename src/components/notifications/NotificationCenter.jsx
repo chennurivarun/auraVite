@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Notification } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import NotificationItem from './NotificationItem';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,7 +21,13 @@ export default function NotificationCenter({ userEmail, onNotificationsUpdate })
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const data = await Notification.filter({ user_email: userEmail }, '-created_date', 50);
+      const { data, error } = await supabase
+        .from('Notification')
+        .select('*')
+        .eq('user_email', userEmail)
+        .order('created_date', { ascending: false })
+        .limit(50);
+      if (error) throw error;
       setNotifications(data || []);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -33,7 +39,10 @@ export default function NotificationCenter({ userEmail, onNotificationsUpdate })
   const handleNotificationClick = async (notification) => {
     if (!notification.read_status) {
       try {
-        await Notification.update(notification.id, { read_status: true });
+        await supabase
+          .from('Notification')
+          .update({ read_status: true })
+          .eq('id', notification.id);
         fetchNotifications();
         onNotificationsUpdate();
       } catch (error) {
@@ -48,7 +57,9 @@ export default function NotificationCenter({ userEmail, onNotificationsUpdate })
     if (unreadIds.length === 0) return;
 
     try {
-      const updatePromises = unreadIds.map(id => Notification.update(id, { read_status: true }));
+      const updatePromises = unreadIds.map(id =>
+        supabase.from('Notification').update({ read_status: true }).eq('id', id)
+      );
       await Promise.all(updatePromises);
       fetchNotifications();
       onNotificationsUpdate();

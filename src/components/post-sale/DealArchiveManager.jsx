@@ -13,7 +13,7 @@ import {
   Eye,
   Star
 } from 'lucide-react';
-import { Transaction } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 
 export default function DealArchiveManager({ 
   transaction, 
@@ -32,11 +32,14 @@ export default function DealArchiveManager({
     try {
       const newArchivedStatus = !transaction.deal_archived;
       
-      await Transaction.update(transaction.id, {
-        ...transaction,
-        deal_archived: newArchivedStatus,
-        archived_at: newArchivedStatus ? new Date().toISOString() : null
-      });
+      await supabase
+        .from('Transaction')
+        .update({
+          ...transaction,
+          deal_archived: newArchivedStatus,
+          archived_at: newArchivedStatus ? new Date().toISOString() : null
+        })
+        .eq('id', transaction.id);
 
       onArchiveStatusChange(newArchivedStatus);
     } catch (err) {

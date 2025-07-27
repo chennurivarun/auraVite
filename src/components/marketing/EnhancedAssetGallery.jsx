@@ -25,7 +25,7 @@ import {
   Archive,
   Edit
 } from 'lucide-react';
-import { MarketingAsset } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function EnhancedAssetGallery({ currentDealer }) {
@@ -75,7 +75,11 @@ export default function EnhancedAssetGallery({ currentDealer }) {
 
     setLoading(true);
     try {
-      const assetData = await MarketingAsset.filter({ dealer_id: currentDealer.id });
+      const { data: assetData, error } = await supabase
+        .from('MarketingAsset')
+        .select('*')
+        .eq('dealer_id', currentDealer.id);
+      if (error) throw error;
       setAssets(assetData);
       
       // Calculate and update asset type counts
@@ -158,10 +162,13 @@ export default function EnhancedAssetGallery({ currentDealer }) {
 
   const rateAsset = async (assetId, rating) => {
     try {
-      await MarketingAsset.update(assetId, { 
-        dealer_rating: rating,
-        status: rating >= 4 ? 'approved' : 'generated'
-      });
+      await supabase
+        .from('MarketingAsset')
+        .update({
+          dealer_rating: rating,
+          status: rating >= 4 ? 'approved' : 'generated'
+        })
+        .eq('id', assetId);
       
       // Simulate AI feedback processing
       console.log(`Asset ${assetId} rated ${rating} stars - AI will learn from this feedback`);

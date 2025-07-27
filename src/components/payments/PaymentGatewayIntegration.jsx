@@ -16,7 +16,7 @@ import {
   Smartphone,
   Wallet
 } from 'lucide-react';
-import { PaymentGateway } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function PaymentGatewayIntegration({ 
@@ -79,20 +79,25 @@ export default function PaymentGatewayIntegration({
 
     try {
       // Create payment gateway record
-      const gatewayRecord = await PaymentGateway.create({
-        transaction_id: transaction.id,
-        payment_gateway: selectedGateway,
-        gateway_order_id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        payment_method: selectedMethod,
-        amount: totalAmount,
-        status: 'created',
-        payment_initiated_at: new Date().toISOString(),
-        buyer_details: {
-          name: transaction.buyer_name || 'Dealer Purchase',
-          email: transaction.buyer_email || 'dealer@example.com',
-          phone: transaction.buyer_phone || '+91 9999999999'
-        }
-      });
+      const { data: gatewayRecord, error } = await supabase
+        .from('PaymentGateway')
+        .insert({
+          transaction_id: transaction.id,
+          payment_gateway: selectedGateway,
+          gateway_order_id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          payment_method: selectedMethod,
+          amount: totalAmount,
+          status: 'created',
+          payment_initiated_at: new Date().toISOString(),
+          buyer_details: {
+            name: transaction.buyer_name || 'Dealer Purchase',
+            email: transaction.buyer_email || 'dealer@example.com',
+            phone: transaction.buyer_phone || '+91 9999999999'
+          }
+        })
+        .select()
+        .single();
+      if (error) throw error;
 
       setGatewayOrder(gatewayRecord);
       setPaymentStatus('gateway_ready');
@@ -129,10 +134,13 @@ export default function PaymentGatewayIntegration({
 
     } catch (error) {
       console.error('Payment processing failed:', error);
-      await PaymentGateway.update(gatewayRecord.id, {
-        status: 'failed',
-        failure_reason: error.message
-      });
+      await supabase
+        .from('PaymentGateway')
+        .update({
+          status: 'failed',
+          failure_reason: error.message
+        })
+        .eq('id', gatewayRecord.id);
       setPaymentStatus('failed');
       if (onPaymentFailure) {
         onPaymentFailure(error.message);
@@ -160,20 +168,23 @@ export default function PaymentGatewayIntegration({
     if (isSuccess) {
       const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      await PaymentGateway.update(gatewayRecord.id, {
-        status: 'completed',
-        gateway_payment_id: paymentId,
-        payment_completed_at: new Date().toISOString(),
-        webhook_verified: true,
-        escrow_reference: `escrow_${paymentId}`,
-        gateway_response: {
-          payment_id: paymentId,
-          status: 'captured',
-          method: selectedMethod,
-          amount: totalAmount,
-          fee: processingFee
-        }
-      });
+      await supabase
+        .from('PaymentGateway')
+        .update({
+          status: 'completed',
+          gateway_payment_id: paymentId,
+          payment_completed_at: new Date().toISOString(),
+          webhook_verified: true,
+          escrow_reference: `escrow_${paymentId}`,
+          gateway_response: {
+            payment_id: paymentId,
+            status: 'captured',
+            method: selectedMethod,
+            amount: totalAmount,
+            fee: processingFee
+          }
+        })
+        .eq('id', gatewayRecord.id);
 
       setPaymentStatus('completed');
       

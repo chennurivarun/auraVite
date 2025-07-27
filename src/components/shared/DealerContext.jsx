@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Dealer } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 
 const DealerContext = createContext();
 
@@ -21,17 +21,17 @@ export const DealerProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const user = await User.me();
-      setCurrentUser(user);
-      
-      // Correctly fetch dealer using user email
-      const dealerData = await Dealer.filter({ created_by: user.email });
-      
-      if (dealerData.length > 0) {
-        setCurrentDealer(dealerData[0]);
-      } else {
-        setCurrentDealer(null);
-      }
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      setCurrentUser(userData.user);
+
+      const { data: dealer, error: dealerErr } = await supabase
+        .from('Dealer')
+        .select('*')
+        .eq('created_by', userData.user.email)
+        .maybeSingle();
+      if (dealerErr) throw dealerErr;
+      setCurrentDealer(dealer);
     } catch (err) {
       console.error('Error loading dealer data:', err);
       setError(err.message);

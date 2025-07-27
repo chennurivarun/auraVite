@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Dealer } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Shield, AlertTriangle } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -20,17 +20,24 @@ export default function PermissionGuard({
 
   const checkPermissions = async () => {
     try {
-      const currentUser = await User.me();
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const currentUser = userData.user;
       setUser(currentUser);
 
       if (requireDealer) {
-        const dealers = await Dealer.filter({ created_by: currentUser.email });
-        if (dealers.length === 0) {
+        const { data: dealer, error: dealerErr } = await supabase
+          .from('Dealer')
+          .select('*')
+          .eq('created_by', currentUser.email)
+          .maybeSingle();
+        if (dealerErr) throw dealerErr;
+        if (!dealer) {
           setError('Dealer profile required');
           return;
         }
-        
-        const currentDealer = dealers[0];
+
+        const currentDealer = dealer;
         setDealer(currentDealer);
 
         if (requireVerification && currentDealer.verification_status !== 'verified') {

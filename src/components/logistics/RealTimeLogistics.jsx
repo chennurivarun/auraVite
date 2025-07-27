@@ -15,7 +15,7 @@ import {
   Calculator,
   AlertCircle
 } from 'lucide-react';
-import { LogisticsPartner } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function RealTimeLogistics({ 
@@ -39,7 +39,10 @@ export default function RealTimeLogistics({
 
   const loadLogisticsPartners = async () => {
     try {
-      const partners = await LogisticsPartner.list();
+      const { data: partners, error } = await supabase
+        .from('LogisticsPartner')
+        .select('*');
+      if (error) throw error;
       setLogisticsPartners(partners.filter(p => p.is_active));
     } catch (error) {
       console.error('Failed to load logistics partners:', error);

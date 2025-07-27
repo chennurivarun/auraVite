@@ -22,7 +22,7 @@ import {
   Eye,
   TrendingUp
 } from 'lucide-react';
-import { SocialMediaAccount, MarketingAsset } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function SocialMediaIntegration({ currentDealer }) {
@@ -45,10 +45,12 @@ export default function SocialMediaIntegration({ currentDealer }) {
   const loadSocialMediaData = async () => {
     setLoading(true);
     try {
-      const [socialAccounts, marketingAssets] = await Promise.all([
-        SocialMediaAccount.filter({ dealer_id: currentDealer.id }),
-        MarketingAsset.filter({ dealer_id: currentDealer.id, status: 'approved' })
+      const [{ data: socialAccounts, error: accErr }, { data: marketingAssets, error: assetErr }] = await Promise.all([
+        supabase.from('SocialMediaAccount').select('*').eq('dealer_id', currentDealer.id),
+        supabase.from('MarketingAsset').select('*').match({ dealer_id: currentDealer.id, status: 'approved' })
       ]);
+      if (accErr) throw accErr;
+      if (assetErr) throw assetErr;
 
       setAccounts(socialAccounts);
       setAssets(marketingAssets.slice(0, 20)); // Limit for performance
@@ -101,17 +103,20 @@ export default function SocialMediaIntegration({ currentDealer }) {
     try {
       // In a real implementation, this would redirect to OAuth flow
       // For demo, we'll simulate a connection
-      const newAccount = await SocialMediaAccount.create({
-        dealer_id: currentDealer.id,
-        platform: platformId,
-        account_username: `@${currentDealer.business_name.toLowerCase().replace(/\s+/g, '')}`,
-        account_id: `${platformId}_${Date.now()}`,
-        connection_status: 'connected',
-        permissions: ['publish_posts', 'read_insights'],
-        auto_post_enabled: false,
-        default_hashtags: ['#cars', '#automotive', '#dealership', '#quality'],
-        last_sync_at: new Date().toISOString()
-      });
+      const { error } = await supabase
+        .from('SocialMediaAccount')
+        .insert({
+          dealer_id: currentDealer.id,
+          platform: platformId,
+          handle: `@${currentDealer.business_name.toLowerCase().replace(/\s+/g, '')}`,
+          account_id: `${platformId}_${Date.now()}`,
+          connection_status: 'connected',
+          permissions: ['publish_posts', 'read_insights'],
+          auto_post_enabled: false,
+          default_hashtags: ['#cars', '#automotive', '#dealership', '#quality'],
+          last_sync_at: new Date().toISOString()
+        });
+      if (error) throw error;
 
       await loadSocialMediaData();
       alert(`Successfully connected to ${platformId.charAt(0).toUpperCase() + platformId.slice(1)}!`);
@@ -145,11 +150,14 @@ export default function SocialMediaIntegration({ currentDealer }) {
         // Update asset with social media post record
         const updatedPosts = [...(selectedAsset.social_media_posts || []), postData];
         
-        await MarketingAsset.update(selectedAsset.id, {
-          social_media_posts: updatedPosts,
-          status: 'published',
-          last_used_at: new Date().toISOString()
-        });
+        await supabase
+          .from('MarketingAsset')
+          .update({
+            social_media_posts: updatedPosts,
+            status: 'published',
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', selectedAsset.id);
 
         return postData;
       });

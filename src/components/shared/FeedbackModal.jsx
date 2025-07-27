@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Feedback } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Loader2, CheckCircle2, LifeBuoy } from 'lucide-react';
 
 export default function FeedbackModal({ isOpen, onClose }) {
@@ -36,11 +36,14 @@ export default function FeedbackModal({ isOpen, onClose }) {
     setError('');
 
     try {
-      await Feedback.create({
-        type: feedbackType,
-        message: message,
-        page_context: window.location.pathname,
-      });
+      const { error } = await supabase
+        .from('Feedback')
+        .insert({
+          type: feedbackType,
+          message: message,
+          page_context: window.location.pathname,
+        });
+      if (error) throw error;
       setSuccess(true);
     } catch (err) {
       console.error('Failed to submit feedback:', err);

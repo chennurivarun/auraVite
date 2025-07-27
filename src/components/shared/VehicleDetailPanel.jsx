@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Vehicle, Dealer } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,13 +62,23 @@ export default function VehicleDetailPanel({
     setLoading(true);
     setError(null);
     try {
-      const vehicleData = await Vehicle.get(vehicleId);
+      const { data: vehicleData, error: vErr } = await supabase
+        .from('Vehicle')
+        .select('*')
+        .eq('id', vehicleId)
+        .single();
+      if (vErr) throw vErr;
 
       if (vehicleData) {
         setVehicle(vehicleData);
 
         if (vehicleData.dealer_id) {
-          const dealerData = await Dealer.get(vehicleData.dealer_id);
+          const { data: dealerData, error: dErr } = await supabase
+            .from('Dealer')
+            .select('*')
+            .eq('id', vehicleData.dealer_id)
+            .single();
+          if (dErr) throw dErr;
           setDealer(dealerData);
         } else {
           setDealer(null);
