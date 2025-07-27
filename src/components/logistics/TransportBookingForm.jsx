@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -72,26 +72,29 @@ export default function TransportBookingForm({ transaction, vehicle, seller, buy
       const pickupETA = calculatePickupETA();
       const deliveryETA = calculateDeliveryETA();
 
-      await Transaction.update(transaction.id, {
-        ...transaction,
-        transport_status: 'pending',
-        pickup_eta: pickupETA?.toISOString(),
-        delivery_eta: deliveryETA?.toISOString(),
-        logistics_partner: formData.transport_partner,
-        pickup_address: formData.pickup_address,
-        delivery_address: formData.delivery_address,
-        transport_instructions: formData.special_instructions,
-        transport_booking_id: `TRK${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-        messages: [
-          ...transaction.messages,
-          {
-            sender_id: currentUser.id,
-            message: `Transport booked with ${selectedPartner.name}. Pickup scheduled for ${format(pickupETA, 'PPP')} and delivery expected by ${format(deliveryETA, 'PPP')}.`,
-            timestamp: new Date().toISOString(),
-            type: 'system'
-          }
-        ]
-      });
+      await supabase
+        .from('Transaction')
+        .update({
+          ...transaction,
+          transport_status: 'pending',
+          pickup_eta: pickupETA?.toISOString(),
+          delivery_eta: deliveryETA?.toISOString(),
+          logistics_partner: formData.transport_partner,
+          pickup_address: formData.pickup_address,
+          delivery_address: formData.delivery_address,
+          transport_instructions: formData.special_instructions,
+          transport_booking_id: `TRK${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+          messages: [
+            ...transaction.messages,
+            {
+              sender_id: currentUser.id,
+              message: `Transport booked with ${selectedPartner.name}. Pickup scheduled for ${format(pickupETA, 'PPP')} and delivery expected by ${format(deliveryETA, 'PPP')}.`,
+              timestamp: new Date().toISOString(),
+              type: 'system'
+            }
+          ]
+        })
+        .eq('id', transaction.id);
 
       onBookingComplete();
     } catch (err) {

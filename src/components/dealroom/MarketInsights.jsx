@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Vehicle } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -32,11 +32,15 @@ export default function MarketInsights({ vehicle, currentOfferAmount, listedPric
     
     try {
       // Query for similar vehicles that have been sold
-      const soldVehicles = await Vehicle.filter({
-        make: vehicle.make,
-        model: vehicle.model,
-        status: 'sold'
-      });
+      const { data: soldVehicles, error } = await supabase
+        .from('Vehicle')
+        .select('*')
+        .match({
+          make: vehicle.make,
+          model: vehicle.model,
+          status: 'sold'
+        });
+      if (error) throw error;
 
       // Filter by similar year range (±2 years)
       const yearRange = 2;

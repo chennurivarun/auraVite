@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Calculator, Eye, AlertTriangle, Loader2, TrendingUp, Truck, Building } from 'lucide-react';
-import { Transaction, Dealer } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function CustomerModeSetupModal({
@@ -35,9 +35,13 @@ export default function CustomerModeSetupModal({
     setError(null);
     try {
       // Load current dealer to get default margin settings
-      const dealers = await Dealer.filter({ id: currentDealer.id });
-      if (dealers.length > 0) {
-        const dealer = dealers[0];
+      const { data: dealer, error: dealerErr } = await supabase
+        .from('Dealer')
+        .select('*')
+        .eq('id', currentDealer.id)
+        .single();
+      if (dealerErr) throw dealerErr;
+      if (dealer) {
         if (dealer.default_desired_margin_percentage) {
           setDesiredMarginPercentage(dealer.default_desired_margin_percentage.toString());
         }
@@ -54,10 +58,11 @@ export default function CustomerModeSetupModal({
       setPlatformFee(DataManager.getPlatformFee());
 
       // Load existing transaction if any
-      const existingTransactions = await Transaction.filter({
-        vehicle_id: vehicle.id,
-        buyer_id: currentDealer.id
-      });
+      const { data: existingTransactions, error: txErr } = await supabase
+        .from('Transaction')
+        .select('*')
+        .match({ vehicle_id: vehicle.id, buyer_id: currentDealer.id });
+      if (txErr) throw txErr;
 
       if (existingTransactions.length > 0) {
         const transaction = existingTransactions[0];
@@ -156,11 +161,22 @@ export default function CustomerModeSetupModal({
 
       let transaction;
       if (existingTransaction) {
-        // Update existing transaction
-        transaction = await Transaction.update(existingTransaction.id, transactionData);
+        const { data, error } = await supabase
+          .from('Transaction')
+          .update(transactionData)
+          .eq('id', existingTransaction.id)
+          .select()
+          .single();
+        if (error) throw error;
+        transaction = data;
       } else {
-        // Create new transaction
-        transaction = await Transaction.create(transactionData);
+        const { data, error } = await supabase
+          .from('Transaction')
+          .insert(transactionData)
+          .select()
+          .single();
+        if (error) throw error;
+        transaction = data;
       }
 
       onEnterCustomerMode(transaction, vehicle);

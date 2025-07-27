@@ -17,7 +17,7 @@ import {
   Users,
   Stamp
 } from 'lucide-react';
-import { DigitalDocument } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { DataManager } from '../shared/DataManager';
 
 export default function DigitalDocumentManager({ 
@@ -41,7 +41,11 @@ export default function DigitalDocumentManager({
   const loadDocuments = async () => {
     setLoading(true);
     try {
-      const docs = await DigitalDocument.filter({ transaction_id: transaction.id });
+      const { data: docs, error } = await supabase
+        .from('DigitalDocument')
+        .select('*')
+        .eq('transaction_id', transaction.id);
+      if (error) throw error;
       setDocuments(docs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     } catch (error) {
       console.error('Failed to load documents:', error);
@@ -111,7 +115,9 @@ export default function DigitalDocumentManager({
         .map(b => b.toString(16).padStart(2, '0')).join('');
 
       // Create document record
-      const newDocument = await DigitalDocument.create({
+      const { data: newDocument, error } = await supabase
+        .from('DigitalDocument')
+        .insert({
         transaction_id: transaction.id,
         document_type: documentType,
         template_used: `${documentType}_template_v1`,
@@ -124,7 +130,10 @@ export default function DigitalDocumentManager({
           { user_email: seller.created_by, permission: 'sign' },
           { user_email: buyer.created_by, permission: 'sign' }
         ]
-      });
+      })
+        .select()
+        .single();
+      if (error) throw error;
 
       await loadDocuments();
       return newDocument;
@@ -157,13 +166,19 @@ export default function DigitalDocumentManager({
         updateData.buyer_ip_address = '192.168.1.1';
       }
 
-      await DigitalDocument.update(documentId, updateData);
+      await supabase
+        .from('DigitalDocument')
+        .update(updateData)
+        .eq('id', documentId);
       await loadDocuments();
 
       // If both parties have signed, mark as executed
       const updatedDoc = documents.find(d => d.id === documentId);
       if (updatedDoc && updatedDoc.signed_by_seller && updatedDoc.signed_by_buyer) {
-        await DigitalDocument.update(documentId, { legal_validity: 'executed' });
+        await supabase
+          .from('DigitalDocument')
+          .update({ legal_validity: 'executed' })
+          .eq('id', documentId);
         await loadDocuments();
       }
 

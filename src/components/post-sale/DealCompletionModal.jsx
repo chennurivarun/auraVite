@@ -16,7 +16,7 @@ import {
   Loader2,
   Award
 } from 'lucide-react';
-import { Transaction, Dealer, Vehicle } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 
 export default function DealCompletionModal({ 
   isOpen, 
@@ -62,25 +62,24 @@ export default function DealCompletionModal({
         const newDealsCount = currentDeals + 1;
         const newAverageRating = newTotalRating / newDealsCount;
 
-        await Dealer.update(otherParty.id, {
-          rating: newAverageRating,
-          completed_deals: newDealsCount
-        });
+        await supabase
+          .from('Dealer')
+          .update({ rating: newAverageRating, completed_deals: newDealsCount })
+          .eq('id', otherParty.id);
       }
 
       // Update current dealer's completed deals count
       if (currentDealer) {
         const currentDeals = currentDealer.completed_deals || 0;
-        await Dealer.update(currentDealer.id, {
-          completed_deals: currentDeals + 1
-        });
+        await supabase
+          .from('Dealer')
+          .update({ completed_deals: currentDeals + 1 })
+          .eq('id', currentDealer.id);
       }
 
       // Update vehicle status to sold
       if (vehicle) {
-        await Vehicle.update(vehicle.id, {
-          status: 'sold'
-        });
+        await supabase.from('Vehicle').update({ status: 'sold' }).eq('id', vehicle.id);
       }
 
       // Mark transaction as fully completed with rating
@@ -101,13 +100,16 @@ export default function DealCompletionModal({
         }
       ];
 
-      await Transaction.update(transaction.id, {
-        ...transaction,
-        status: 'completed',
-        [isSellerView ? 'seller_rating' : 'buyer_rating']: ratingData,
-        deal_archived: false, // Ready for archiving but not yet archived
-        messages: updatedMessages
-      });
+      await supabase
+        .from('Transaction')
+        .update({
+          ...transaction,
+          status: 'completed',
+          [isSellerView ? 'seller_rating' : 'buyer_rating']: ratingData,
+          deal_archived: false,
+          messages: updatedMessages
+        })
+        .eq('id', transaction.id);
 
       onClose(true); // Pass true to indicate successful completion
     } catch (err) {

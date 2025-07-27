@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RTOApplication } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -45,17 +45,22 @@ export default function RTOInitiationForm({ transaction, vehicle, seller, buyer,
     setLoading(true);
     setError('');
     try {
-      const newApplication = await RTOApplication.create({
-        transaction_id: transaction.id,
-        vehicle_id: vehicle.id,
-        seller_name: seller.business_name,
-        seller_address: seller.address,
-        buyer_name: buyer.business_name,
-        buyer_address: buyer.address,
-        application_fee: parseFloat(formData.application_fee) || 0,
-        document_urls: formData.document_urls,
-        status: 'submitted',
-      });
+      const { data: newApplication, error } = await supabase
+        .from('RTOApplication')
+        .insert({
+          transaction_id: transaction.id,
+          vehicle_id: vehicle.id,
+          seller_name: seller.business_name,
+          seller_address: seller.address,
+          buyer_name: buyer.business_name,
+          buyer_address: buyer.address,
+          application_fee: parseFloat(formData.application_fee) || 0,
+          document_urls: formData.document_urls,
+          status: 'submitted',
+        })
+        .select()
+        .single();
+      if (error) throw error;
       onApplicationCreated(newApplication);
     } catch (err) {
       console.error('Failed to submit RTO application:', err);

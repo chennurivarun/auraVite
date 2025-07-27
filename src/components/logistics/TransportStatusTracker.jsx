@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction } from '@/api/entities';
+import supabase from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,20 +43,23 @@ export default function TransportStatusTracker({ transaction, vehicle, seller, b
     setError('');
 
     try {
-      await Transaction.update(transaction.id, {
-        ...transaction,
-        transport_status: 'delivered',
-        delivery_confirmed_at: new Date().toISOString(),
-        messages: [
-          ...transaction.messages,
-          {
-            sender_id: currentUser.id,
-            message: `Vehicle delivery confirmed by ${isCurrentUserBuyer ? 'buyer' : 'seller'}. Transport completed successfully.`,
-            timestamp: new Date().toISOString(),
-            type: 'system'
-          }
-        ]
-      });
+      await supabase
+        .from('Transaction')
+        .update({
+          ...transaction,
+          transport_status: 'delivered',
+          delivery_confirmed_at: new Date().toISOString(),
+          messages: [
+            ...transaction.messages,
+            {
+              sender_id: currentUser.id,
+              message: `Vehicle delivery confirmed by ${isCurrentUserBuyer ? 'buyer' : 'seller'}. Transport completed successfully.`,
+              timestamp: new Date().toISOString(),
+              type: 'system'
+            }
+          ]
+        })
+        .eq('id', transaction.id);
 
       onStatusUpdate();
     } catch (err) {

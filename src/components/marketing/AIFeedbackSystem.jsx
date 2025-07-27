@@ -16,8 +16,7 @@ import {
   Lightbulb,
   Target
 } from 'lucide-react';
-import { MarketingAsset } from '@/api/entities';
-import { InvokeLLM } from '@/api/integrations';
+import supabase from '@/api/supabaseClient';
 
 export default function AIFeedbackSystem({ assets, currentDealer, onFeedbackSubmitted }) {
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -49,11 +48,17 @@ export default function AIFeedbackSystem({ assets, currentDealer, onFeedbackSubm
     setSubmitting(true);
     try {
       // Update asset with feedback
-      const updatedAsset = await MarketingAsset.update(selectedAsset.id, {
-        dealer_rating: feedback.rating,
-        dealer_feedback: feedback.feedback_text,
-        status: feedback.rating >= 4 ? 'approved' : (feedback.rating <= 2 ? 'rejected' : 'generated')
-      });
+      const { data: updatedAsset, error } = await supabase
+        .from('MarketingAsset')
+        .update({
+          dealer_rating: feedback.rating,
+          dealer_feedback: feedback.feedback_text,
+          status: feedback.rating >= 4 ? 'approved' : (feedback.rating <= 2 ? 'rejected' : 'generated')
+        })
+        .eq('id', selectedAsset.id)
+        .select()
+        .single();
+      if (error) throw error;
 
       // Send feedback to AI system for learning
       await processAIFeedback(selectedAsset, feedback);
@@ -97,14 +102,14 @@ export default function AIFeedbackSystem({ assets, currentDealer, onFeedbackSubm
         Focus on actionable improvements and pattern recognition.
       `;
 
-      await InvokeLLM({
+      await supabase.rpc('invoke_llm', {
         prompt: feedbackPrompt,
-        response_json_schema: {
-          type: "object",
+        schema: {
+          type: 'object',
           properties: {
-            insights: { type: "array", items: { type: "string" } },
-            improvement_areas: { type: "array", items: { type: "string" } },
-            learning_points: { type: "array", items: { type: "string" } }
+            insights: { type: 'array', items: { type: 'string' } },
+            improvement_areas: { type: 'array', items: { type: 'string' } },
+            learning_points: { type: 'array', items: { type: 'string' } }
           }
         }
       });
@@ -139,17 +144,17 @@ export default function AIFeedbackSystem({ assets, currentDealer, onFeedbackSubm
         5. Trending opportunities
       `;
 
-      const insights = await InvokeLLM({
+      const { data: insights } = await supabase.rpc('invoke_llm', {
         prompt: insightsPrompt,
-        response_json_schema: {
-          type: "object",
+        schema: {
+          type: 'object',
           properties: {
-            preferred_styles: { type: "array", items: { type: "string" } },
-            effective_platforms: { type: "array", items: { type: "string" } },
-            content_strategies: { type: "array", items: { type: "string" } },
-            improvement_areas: { type: "array", items: { type: "string" } },
-            trending_opportunities: { type: "array", items: { type: "string" } },
-            overall_score: { type: "number" }
+            preferred_styles: { type: 'array', items: { type: 'string' } },
+            effective_platforms: { type: 'array', items: { type: 'string' } },
+            content_strategies: { type: 'array', items: { type: 'string' } },
+            improvement_areas: { type: 'array', items: { type: 'string' } },
+            trending_opportunities: { type: 'array', items: { type: 'string' } },
+            overall_score: { type: 'number' }
           }
         }
       });
