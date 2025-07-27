@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import VehicleCard from "../components/shared/VehicleCard";
 import VehicleDetailPanel from "../components/shared/VehicleDetailPanel";
 import { Button } from "@/components/ui/button";
@@ -214,7 +215,12 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex h-full items-center justify-center p-8"
+      >
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h3 className="momentum-h3 text-red-700 mb-2">Error Loading Dashboard</h3>
@@ -223,7 +229,7 @@ export default function Dashboard() {
             Reload Page
           </Button>
         </div>
-      </div>
+      </motion.div>
     );
   }
   
@@ -234,7 +240,12 @@ export default function Dashboard() {
   // Platform Admin Dashboard View
   if (currentUser?.platform_admin && !currentDealer) {
     return (
-      <div className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto"
+      >
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="momentum-h1 flex items-center gap-3">
@@ -344,7 +355,7 @@ export default function Dashboard() {
             </div>
           </Card>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -353,7 +364,12 @@ export default function Dashboard() {
 
   if (!isVerified) {
     return (
-      <div className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto"
+      >
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="momentum-h1">Welcome, {currentDealer.business_name}</h1>
@@ -410,14 +426,19 @@ export default function Dashboard() {
             </Button>
           </Link>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <ErrorBoundary>
       <PermissionGuard requireDealer={true}>
-        <div className="flex h-full">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="flex h-full"
+        >
           <div className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -633,7 +654,7 @@ export default function Dashboard() {
               onMakeOffer={(vehicle) => console.log('Make offer for:', vehicle)}
             />
           </div>
-        </div>
+        </motion.div>
       </PermissionGuard>
     </ErrorBoundary>
   );
