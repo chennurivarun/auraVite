@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User } from '@/api/entities';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function AuthHub() {
+  const [session, setSession] = useState(null);
+
   const handleLogin = async () => {
     // This single function handles both new user sign-up and returning user login via Google SSO.
     // After login, the user is automatically redirected back to the app.
-    await User.login();
+    await supabase.auth.signInWithOAuth({ provider: 'google' });
   };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-gray-900 flex items-center justify-center p-4">
