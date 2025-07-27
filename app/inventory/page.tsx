@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Search, Plus, Edit, Trash2, Copy, Upload, Download, Car } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
@@ -268,7 +269,7 @@ export default function Inventory() {
                   <Download className="w-4 h-4 mr-2" />
                   Export
                 </Button>
-                <Link to={createPageUrl("AddVehicle")}>
+                <Link href={createPageUrl("AddVehicle")}>
                   <Button className="momentum-btn-accent">
                     <Plus className="w-4 h-4 mr-2" />
                     List Vehicle
@@ -381,7 +382,7 @@ export default function Inventory() {
                   {searchTerm ? 'Try a different search term.' : 'Click "List Vehicle" to add your first car.'}
                 </p>
                 {!searchTerm && (
-                  <Link to={createPageUrl("AddVehicle")}>
+                  <Link href={createPageUrl("AddVehicle")}>
                     <Button className="momentum-btn-primary">
                       <Plus className="w-4 h-4 mr-2" />
                       List First Vehicle
@@ -411,7 +412,7 @@ export default function Inventory() {
                     />
                     
                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
-                      <Link to={createPageUrl(`AddVehicle?id=${vehicle.id}`)}>
+                      <Link href={createPageUrl(`AddVehicle?id=${vehicle.id}`)}>
                         <button className="w-9 h-9 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full flex items-center justify-center transition-colors shadow-md">
                           <Edit className="w-4 h-4 text-blue-600" />
                         </button>

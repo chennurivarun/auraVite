@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from '@/utils';
 import { SendEmail } from '@/api/integrations';
 import { User as UserIcon, Bell, Shield, BookOpen, Eye, Calculator } from 'lucide-react';
@@ -401,7 +402,7 @@ export default function Settings() {
                       <p className="text-sm text-yellow-700 mb-4">
                         Complete your business verification to unlock all platform features including advanced analytics and priority support.
                       </p>
-                      <Link to={createPageUrl('OnboardingWizard')}>
+                      <Link href={createPageUrl('OnboardingWizard')}>
                         <Button className="momentum-btn-accent">
                           Complete Verification
                         </Button>
@@ -433,7 +434,7 @@ export default function Settings() {
                       <p className="text-sm text-red-700 mb-4">
                         Your verification was rejected. Please review and resubmit your documents.
                       </p>
-                      <Link to={createPageUrl('OnboardingWizard')}>
+                      <Link href={createPageUrl('OnboardingWizard')}>
                         <Button variant="outline">
                           Resubmit Documents
                         </Button>
@@ -655,7 +656,7 @@ export default function Settings() {
                     <p className="text-sm text-blue-700 mb-4">
                       Browse our frequently asked questions to get instant answers on how to use the platform, manage deals, and more.
                     </p>
-                    <Link to={createPageUrl('Help')}>
+                    <Link href={createPageUrl('Help')}>
                       <Button className="momentum-btn-primary">
                         Go to Help Center
                       </Button>

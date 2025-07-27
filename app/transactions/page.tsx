@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, Eye, MessageSquare, Car, Star, Archive } from "lucide-react"; // Added Star, Archive
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { createPageUrl } from "@/utils";
 import TransactionCard from '@/components/shared/TransactionCard'; // Added TransactionCard import
 
@@ -211,7 +211,7 @@ export default function Transactions() {
               }
             </p>
             {!searchTerm && !showArchived && (
-              <Link to={createPageUrl("Marketplace")}>
+              <Link href={createPageUrl("Marketplace")}>
                 <Button className="momentum-btn-primary">
                   <Car className="w-4 h-4 mr-2" />
                   Browse Marketplace
