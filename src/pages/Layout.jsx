@@ -1,8 +1,8 @@
 
 
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import Link from "next/link";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { User } from "@/api/entities";
 import { Notification } from "@/api/entities";
@@ -64,7 +64,6 @@ export default function Layout({ children, currentPageName }) {
       setCurrentUser(user);
     } catch (e) {
       if (!noLayoutPages.includes(currentPageName)) {
-        navigate(createPageUrl('Welcome'));
       }
     } finally {
       setIsLoadingUser(false);
@@ -86,7 +85,6 @@ export default function Layout({ children, currentPageName }) {
 
   const handleLogout = async () => {
     await User.logout();
-    navigate(createPageUrl('Welcome'));
   };
 
   // Render pages without layout immediately
@@ -175,14 +173,14 @@ export default function Layout({ children, currentPageName }) {
         `}</style>
 
         <div className="flex h-screen w-full fixed">
+            <Link href="/dashboard" className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">A</Link>
           <nav className="w-20 momentum-glass-nav flex flex-col items-center py-6 space-y-4 shrink-0">
-            <Link to={createPageUrl("Dashboard")} className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">A</Link>
             
             <div className="flex-1 flex flex-col items-center space-y-2 mt-8">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
-                  to={createPageUrl(item.href)}
+                  href={"/" + item.href.toLowerCase()}
                   className={`group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 ${
                     currentPageName === item.href
                       ? "bg-blue-50 text-blue-600"
@@ -227,8 +225,8 @@ export default function Layout({ children, currentPageName }) {
               </Popover>
 
               <Link
-                to={createPageUrl("ListingWizard")}
                 className="group relative w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center justify-center transition-all duration-200 hover:shadow-lg"
+                  href="/listingwizard"
                 title="Add Vehicle"
               >
                 <Plus className="w-6 h-6" />
@@ -240,7 +238,7 @@ export default function Layout({ children, currentPageName }) {
               {/* Platform Admin Link - Only show for platform admins */}
               {currentUser?.platform_admin && (
                 <Link
-                  to={createPageUrl("PlatformAdmin")}
+                  href="/platformadmin"
                   className={`group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 ${
                     currentPageName === 'PlatformAdmin'
                       ? "bg-red-50 text-red-600"
