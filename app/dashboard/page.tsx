@@ -4,7 +4,8 @@ import VehicleCard from "../components/shared/VehicleCard";
 import VehicleDetailPanel from "../components/shared/VehicleDetailPanel";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, TrendingUp, DollarSign, Car, Handshake, AlertTriangle, Clock, CheckSquare, PartyPopper, Shield, Users, Activity, Settings, BarChart3 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Input } from "@/components/ui/input";
@@ -245,7 +246,7 @@ export default function Dashboard() {
               Welcome back, {currentUser.full_name || currentUser.email}. Manage the entire platform from here.
             </p>
           </div>
-          <Link to={createPageUrl("PlatformAdmin")}>
+          <Link href={createPageUrl("PlatformAdmin")}>
             <Button className="momentum-btn-accent">
               <Shield className="w-4 h-4 mr-2" />
               Admin Panel
@@ -307,13 +308,13 @@ export default function Dashboard() {
           <Card className="momentum-card p-6">
             <h3 className="momentum-h3 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <Link to={createPageUrl("PlatformAdmin")} className="block">
+              <Link href={createPageUrl("PlatformAdmin")} className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Shield className="w-4 h-4 mr-2" />
                   User Management & Permissions
                 </Button>
               </Link>
-              <Link to={createPageUrl("Analytics")} className="block">
+              <Link href={createPageUrl("Analytics")} className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Platform Analytics
@@ -379,7 +380,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="mt-4">
-                  <Link to={createPageUrl("OnboardingWizard")}>
+                  <Link href={createPageUrl("OnboardingWizard")}>
                     <Button className="momentum-btn-accent">
                       Start Verification
                     </Button>
@@ -404,7 +405,7 @@ export default function Dashboard() {
           <p className="momentum-body mb-6">
             You can browse the national inventory while your verification is pending.
           </p>
-          <Link to={createPageUrl('Marketplace')}>
+          <Link href={createPageUrl('Marketplace')}>
             <Button variant="outline" size="lg">
               Browse Live Vehicles
             </Button>
@@ -426,7 +427,7 @@ export default function Dashboard() {
                   Welcome back, {currentDealer.business_name}. Here's your business overview.
                 </p>
               </div>
-              <Link to={createPageUrl("ListingWizard")}>
+              <Link href={createPageUrl("ListingWizard")}>
                 <Button className="momentum-btn-accent">
                   <Plus className="w-4 h-4 mr-2" />
                   List Vehicle
@@ -458,13 +459,13 @@ export default function Dashboard() {
                 <h3 className="momentum-h2 mb-2 text-gray-800">Welcome to the Driver's Seat, {currentDealer.business_name}!</h3>
                 <p className="momentum-body mb-8 max-w-2xl mx-auto">You're fully verified and ready to trade. Your dashboard will come alive with stats and analytics as you transact. <br/>What would you like to do first?</p>
                 <div className="flex justify-center items-center gap-4 flex-wrap">
-                  <Link to={createPageUrl("ListingWizard")}>
+                  <Link href={createPageUrl("ListingWizard")}>
                     <Button className="momentum-btn-accent" size="lg">
                       <Plus className="w-5 h-5 mr-2" /> List Your First Vehicle
                     </Button>
                   </Link>
                   <div className="text-gray-500 font-semibold">OR</div>
-                  <Link to={createPageUrl("Marketplace")}>
+                  <Link href={createPageUrl("Marketplace")}>
                     <Button variant="outline" size="lg" className="bg-white">
                       <Search className="w-5 h-5 mr-2" /> Find a Car for a Customer
                     </Button>
@@ -550,7 +551,7 @@ export default function Dashboard() {
                           <div key={item.id} className={`p-3 rounded-lg border ${item.urgent ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
                             <div className="font-medium text-sm">{item.title}</div>
                             <div className="text-xs text-gray-600 mb-2">{item.description}</div>
-                            <Link to={item.link}>
+                            <Link href={item.link}>
                               <Button size="sm" variant={item.urgent ? 'default' : 'outline'} className="text-xs">
                                 {item.action}
                               </Button>
@@ -570,7 +571,7 @@ export default function Dashboard() {
                         <Car className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="momentum-h3 mb-2">No vehicles yet</h3>
                         <p className="momentum-body mb-6">Your listed vehicles will appear here.</p>
-                        <Link to={createPageUrl("ListingWizard")}>
+                        <Link href={createPageUrl("ListingWizard")}>
                           <Button className="momentum-btn-accent">
                             <Plus className="w-4 h-4 mr-2" />
                             List Your First Vehicle

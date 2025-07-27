@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Filter, SlidersHorizontal, Heart, Share2, AlertCircle, Star, Loader2, Plus } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import Link from "next/link";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SendEmail, InvokeLLM } from '@/api/integrations';
 import ErrorBoundary from "../components/shared/ErrorBoundary";
 import PermissionGuard from "../components/shared/PermissionGuard";
@@ -393,7 +394,7 @@ export default function Marketplace() {
                   </div>
                   <div className="flex items-center gap-4">
                     {!currentDealer && (
-                      <Link to={createPageUrl('DealerOnboarding')}>
+                      <Link href={createPageUrl('DealerOnboarding')}>
                         <Button className="momentum-btn-accent">
                           <Plus className="w-4 h-4 mr-2" />
                           Become a Dealer
